@@ -25,13 +25,16 @@ else:
 
 
 modes = ['+','x','o']
+try:
+    pics = os.listdir('customcross')
+except:os.makedirs('customcross');pics = os.listdir('customcross')
 
-pics = os.listdir('customcross')
+def open_folder():
 
+    os.startfile('customcross')
 
     
-    
-def corshair(screenx, screeny):
+def corshair():
     app = tkinter.Tk()
 
     screenx = app.winfo_screenwidth()
@@ -78,22 +81,22 @@ def corshair(screenx, screeny):
 
         
     def load_texture(image_path):
-        # Load the image
+        
         img = Image.open(image_path)
-        img = img.transpose(Image.FLIP_TOP_BOTTOM)  # OpenGL treats image origin at bottom-left
+        img = img.transpose(Image.FLIP_TOP_BOTTOM)  
         img_data = img.convert("RGBA").tobytes()
 
-        # Create texture ID and bind it
+        
         texture_id = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, texture_id)
 
-        # Set texture parameters
+
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-        # Load image data into texture
+       
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
 
         return texture_id, img.width, img.height
@@ -121,12 +124,13 @@ def corshair(screenx, screeny):
         time.sleep(0.001)
 
         gl.glLineWidth(thickness)
+        gl.glColor3b(*color1)
+        
 
         
 
-        gl.glColor3b(*color1)
-
         if gui.get_value('t')=='+' and gui.get_value('rep')==False:
+            
             gl.glBegin(gl.GL_LINES)
             
             
@@ -149,6 +153,7 @@ def corshair(screenx, screeny):
             
             gl.glEnd()
         elif gui.get_value('t')=='x' and gui.get_value('rep')==False:
+            
             gl.glBegin(gl.GL_LINES)
          
             if gui.get_value('dot')== True:
@@ -162,6 +167,7 @@ def corshair(screenx, screeny):
             
             gl.glEnd()
         elif gui.get_value('t')=='o' and gui.get_value('rep')==False:
+            
             gl.glBegin(gl.GL_LINE_LOOP)
 
             if size > 0:
@@ -178,13 +184,17 @@ def corshair(screenx, screeny):
             gl.glEnd()
        
         elif gui.get_value('rep')==True:
+
             texture_id, img_width, img_height = load_texture("customcross/"+gui.get_value('path'))
             glEnable(GL_TEXTURE_2D)
             glBindTexture(GL_TEXTURE_2D, texture_id)
             
             
-            x_center = screenx / 2
-            y_center = screeny / 2
+            gui.set_value('r',255)
+            gui.set_value('g',255)
+            gui.set_value('b',255)
+
+
             half_width = img_width / 2
             half_height = img_height / 2
 
@@ -192,13 +202,13 @@ def corshair(screenx, screeny):
 
             glBegin(GL_QUADS)
             glTexCoord2f(0, 0)
-            glVertex2f(x - half_width, y - half_height)  # Bottom-left corner
+            glVertex2f(x - half_width, y - half_height)  
             glTexCoord2f(1, 0)
-            glVertex2f(x + half_width, y - half_height)  # Bottom-right corner
+            glVertex2f(x + half_width, y - half_height)  
             glTexCoord2f(1, 1)
-            glVertex2f(x + half_width, y + half_height)  # Top-right corner
+            glVertex2f(x + half_width, y + half_height) 
             glTexCoord2f(0, 1)
-            glVertex2f(x - half_width, y + half_height)  # Top-left corner
+            glVertex2f(x - half_width, y + half_height)  
             glEnd()
 
             glDisable(GL_TEXTURE_2D)
@@ -233,11 +243,13 @@ with gui.window(label='cross', width=400,height=400,no_title_bar=True,no_resize=
             gui.add_slider_int(label='green', tag='g', min_value=0, max_value=255, default_value=255)
             gui.add_slider_int(label='blue', tag='b', min_value=0, max_value=255, default_value=255)
             gui.add_checkbox(label='dot',tag='dot')
+            gui.add_button(label='generate',callback=corshair)
         with gui.tab(label='image'):
             gui.add_checkbox(label='replace crosshair with image',tag='rep')
             gui.add_listbox(label='path',tag='path',items=pics)
-        with gui.tab(label='generate'):
+            gui.add_button(label='open folder',callback=open_folder)
             gui.add_button(label='generate',callback=corshair)
+
             
         
 
