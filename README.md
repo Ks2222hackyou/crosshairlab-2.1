@@ -1,1 +1,1 @@
-Open in Visual Studio Code or convert to exe to make it work
+download in exe: https://www.mediafire.com/file/3cn455duvup04u8/crosshairlab.rar/file
