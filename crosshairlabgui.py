@@ -3,7 +3,7 @@ import glfw, threading
 import win32gui
 import OpenGL.GL as gl
 import win32con, time
-import math,mouse
+import math
 import tkinter, os
 import dearpygui.dearpygui as gui
 from OpenGL.GL import *
@@ -16,8 +16,11 @@ title = 'CrosshairLab v2.3'
 screenx = tkinter.Tk().winfo_screenwidth()
 screeny = tkinter.Tk().winfo_screenheight()
 
+
+
+
 modes = ['+','x','o']
-def load():
+def load_files():
     try:
         pics = os.listdir('customcross')
     except:
@@ -31,7 +34,7 @@ def load():
         saves = os.listdir('saves')
     return pics,saves
 
-pics,saves = load()
+pics,saves = load_files()
 
 def load():
     file = 'saves/'+gui.get_value('file')
@@ -77,6 +80,39 @@ def save():
 def open_folder():
     os.startfile('customcross')
 
+def ref_files():
+    global pics,saves
+    pics,saves= load_files()
+    gui.configure_item("path", items=pics)
+    gui.configure_item("file", items=saves)
+
+def coltest():
+    def set_color(r,g,b):gui.set_value('color',[float(r),float(g),float(b),255.0])
+
+    while True:       
+        if gui.get_value('rgbef'):
+
+            for i in range(256):
+                set_color(i, 0.0, 0.0) 
+                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+            
+            for i in range(256):
+                set_color(255.0, i, 0.0)
+                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+            
+            for i in range(256):
+                set_color(255.0 - i, 255.0, 0.0)
+                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+            
+            for i in range(256):
+                set_color(0, 255.0 - i, 255.0)
+                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+            
+            for i in range(256):
+                set_color(0, 0, 255.0 - i)
+                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+        time.sleep(0.0001)
+
 def reset_pos():
     gui.set_value('posx',screenx/2)
     gui.set_value('posy',screeny/2)
@@ -108,26 +144,20 @@ def corshair():
     win32gui.SetWindowLong(handle, win32con.GWL_EXSTYLE, exStyle | win32con.WS_EX_LAYERED | win32con.WS_EX_TRANSPARENT)
 
     def dot(x, y, dot_size):
-    
         if dot_size > 0:
-            half_dot_size = dot_size/2
-        
-        gl.glVertex2f(x - half_dot_size, y - half_dot_size)
-        gl.glVertex2f(x - half_dot_size, y + half_dot_size)
-        
-        gl.glVertex2f(x - half_dot_size, y + half_dot_size)
-        gl.glVertex2f(x + half_dot_size, y + half_dot_size)
+            half_dot_size = dot_size / 2
 
-        gl.glVertex2f(x + half_dot_size, y + half_dot_size)
-        gl.glVertex2f(x + half_dot_size, y - half_dot_size)
 
-        gl.glVertex2f(x + half_dot_size, y - half_dot_size)
-        gl.glVertex2f(x - half_dot_size, y - half_dot_size)
-    
+            gl.glBegin(gl.GL_QUADS)
+            gl.glVertex2f(x - half_dot_size, y - half_dot_size)
+            gl.glVertex2f(x - half_dot_size, y + half_dot_size)
+            gl.glVertex2f(x + half_dot_size, y + half_dot_size)
+            gl.glVertex2f(x + half_dot_size, y - half_dot_size)
+            gl.glEnd()
+
     def get_color():
         return (int(gui.get_value('color')[0]/2),int(gui.get_value('color')[1]/2),int(gui.get_value('color')[2]/2))
-
-    
+   
     def load_texture(image_path):
         
         img = Image.open(image_path)
@@ -174,12 +204,7 @@ def corshair():
         if gui.get_value('t')=='+' and gui.get_value('rep')==False:
             
             gl.glBegin(gl.GL_LINES)
-            
-            
-            if gui.get_value('dot')== True:
-                dot(x,y,thickness)
- 
-            
+        
             gl.glVertex2f(x - (size + gap), y)
             gl.glVertex2f(x - gap, y)
 
@@ -194,38 +219,45 @@ def corshair():
             gl.glVertex2f(x, y + gap)
             
             gl.glEnd()
+            
+            if gui.get_value('dot')== True:
+                dot(x,y,thickness)
         
         elif gui.get_value('t')=='x' and gui.get_value('rep')==False:
             
             gl.glBegin(gl.GL_LINES)
-         
-            if gui.get_value('dot')== True:
-                dot(x,y,thickness)
             
-            gl.glVertex2f(x+size,y+size)
-            gl.glVertex2f(x-size,y-size)
-            
-            gl.glVertex2f(x-size,y+size)
-            gl.glVertex2f(x+size,y-size)
+            gl.glVertex2f(x + gap, y + gap)
+            gl.glVertex2f(x + size + gap, y + size + gap)
+
+            gl.glVertex2f(x - gap, y - gap)
+            gl.glVertex2f(x - size - gap, y - size - gap)
+
+            gl.glVertex2f(x - gap, y + gap)
+            gl.glVertex2f(x - size - gap, y + size + gap)
+
+            gl.glVertex2f(x + gap, y - gap)
+            gl.glVertex2f(x + size + gap, y - size - gap)
             
             gl.glEnd()
+
+            if gui.get_value('dot')== True:
+                dot(x,y,thickness)
        
-        elif gui.get_value('t')=='o' and gui.get_value('rep')==False:
-            
+        elif gui.get_value('t') == 'o' and gui.get_value('rep') == False:
             gl.glBegin(gl.GL_LINE_LOOP)
 
             if size > 0:
-                gl.GL_TRIANGLE_FAN
                 num_segments = 10000
                 for i in range(num_segments):
                     theta = 2.0 * math.pi * i / num_segments
                     dx = size * math.cos(theta)
                     dy = size * math.sin(theta)
-                    gl.glVertex2f(x + dx, y + dy)
-            if gui.get_value('dot')== True:
-                dot(x,y,thickness)
-            
+                    gl.glVertex2f(x + dx, y + dy)        
             gl.glEnd()
+            
+            if gui.get_value('dot') == True:
+                dot(x, y, thickness)
        
         elif gui.get_value('rep')==True:
 
@@ -253,10 +285,10 @@ def corshair():
             glDisable(GL_TEXTURE_2D)
 
 
+
 def threads():
     threading.Thread(target=corshair, daemon=True).start()
-
-
+    threading.Thread(target=coltest, daemon=True).start()
 
 
 gui.create_context()
@@ -270,12 +302,14 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
         with gui.tab(label='crosshair'):
             gui.add_listbox(label='type',tag='t',items=modes, default_value='+')
             gui.add_slider_int(label='size', tag='size', min_value=1, max_value=50, default_value=6)
-            gui.add_slider_int(label='gap', tag='gap', min_value=1, max_value=50, default_value=4)
+            gui.add_slider_int(label='gap', tag='gap', min_value=0, max_value=50, default_value=4)
             gui.add_slider_int(label='thick', tag='thick', min_value=1, max_value=10, default_value=2)
             gui.add_checkbox(label='dot',tag='dot')
             gui.add_button(label='reset',callback=reset,width=100)
         with gui.tab(label='color'):
-            gui.add_color_picker(label='color:',tag='color', default_value=[255.0,255.0,255.0,255.0])
+            gui.add_color_picker(label='color:',tag='color', default_value=[255.0,255.0,255.0,255.0],height=200,width=200)
+            gui.add_checkbox(label='rgb effect',tag='rgbef')
+            gui.add_slider_int(label='effect speed',tag='efspeed',min_value=1,max_value=10,default_value=5)
         with gui.tab(label='position'):
             gui.add_slider_int(label='posx', min_value=1,max_value=screenx,default_value=screenx/2, tag='posx',width=300)
             gui.add_slider_int(label='posy', min_value=1,max_value=screeny,default_value=screeny/2, tag='posy',width=300)
@@ -283,15 +317,16 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
         with gui.tab(label='img to cross'):
             gui.add_checkbox(label='replace crosshair with image',tag='rep')
             gui.add_listbox(label='path',tag='path',items=pics)
+            gui.add_button(label='refresh files',callback=ref_files,width=100)
             gui.add_button(label='open folder',callback=open_folder,width=100)
         with gui.tab(label='save/load'):
             gui.add_text(label='Load',default_value='Load')
             gui.add_listbox(label='',tag='file',items=saves)
             gui.add_button(label='load',callback=load,width=100)
+            gui.add_button(label='refresh files',callback=ref_files,width=100)
             gui.add_text(label='Save',default_value='Save')
             gui.add_input_text(label='save name',tag='savename')
             gui.add_button(label='save',callback=save,width=100)
-            
 
 
 
