@@ -86,32 +86,40 @@ def ref_files():
     gui.configure_item("path", items=pics)
     gui.configure_item("file", items=saves)
 
-def coltest():
+def rgbeffect():
     def set_color(r,g,b):gui.set_value('color',[float(r),float(g),float(b),255.0])
 
     while True:       
         if gui.get_value('rgbef'):
+            if gui.get_value('rgbef'):
+                set_color(255.0, 0.0, 0.0) 
 
             for i in range(256):
-                set_color(i, 0.0, 0.0) 
-                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
-            
+                if gui.get_value('rgbef'):
+                    set_color(255.0, i, 0.0)
+                    time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+
             for i in range(256):
-                set_color(255.0, i, 0.0)
-                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
-            
+                if gui.get_value('rgbef'):
+                    set_color(255.0 - i, 255.0, 0.0)
+                    time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+
             for i in range(256):
-                set_color(255.0 - i, 255.0, 0.0)
-                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
-            
+                if gui.get_value('rgbef'):
+                    set_color(0, 255.0 - i, i)
+                    time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+
             for i in range(256):
-                set_color(0, 255.0 - i, 255.0)
-                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
-            
+                if gui.get_value('rgbef'):
+                    set_color(i, 0, 255.0)
+                    time.sleep(0.01 / (gui.get_value('efspeed') / 2))
+
             for i in range(256):
-                set_color(0, 0, 255.0 - i)
-                time.sleep(0.01 / (gui.get_value('efspeed') / 2))
-        time.sleep(0.0001)
+                if gui.get_value('rgbef'):
+                    set_color(255.0, 0, 255.0 - i)
+                    time.sleep(0.01 / (gui.get_value('efspeed') / 2))       
+            time.sleep(0.0001)
+        else:time.sleep(0.5)
 
 def reset_pos():
     gui.set_value('posx',screenx/2)
@@ -288,7 +296,7 @@ def corshair():
 
 def threads():
     threading.Thread(target=corshair, daemon=True).start()
-    threading.Thread(target=coltest, daemon=True).start()
+    threading.Thread(target=rgbeffect, daemon=True).start()
 
 
 gui.create_context()
@@ -309,7 +317,7 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
         with gui.tab(label='color'):
             gui.add_color_picker(label='color:',tag='color', default_value=[255.0,255.0,255.0,255.0],height=200,width=200)
             gui.add_checkbox(label='rgb effect',tag='rgbef')
-            gui.add_slider_int(label='effect speed',tag='efspeed',min_value=1,max_value=10,default_value=5)
+            gui.add_slider_int(label='effect speed',tag='efspeed',min_value=1,max_value=20,default_value=5)
         with gui.tab(label='position'):
             gui.add_slider_int(label='posx', min_value=1,max_value=screenx,default_value=screenx/2, tag='posx',width=300)
             gui.add_slider_int(label='posy', min_value=1,max_value=screeny,default_value=screeny/2, tag='posy',width=300)
