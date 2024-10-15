@@ -12,81 +12,109 @@ import pygetwindow as gw
 #https://www.rapidtables.com/web/color/RGB_Color.html
 
 
-title = 'CrosshairLab v2.3'
+title = 'CrosshairLab v2.5'
 screenx = tkinter.Tk().winfo_screenwidth()
 screeny = tkinter.Tk().winfo_screenheight()
 
 
 
 
-modes = ['+','x','o']
-def load_files():
-    try:
-        pics = os.listdir('customcross')
-    except:
-        os.makedirs('customcross')
-        pics = os.listdir('customcross')
 
-    try:
-        saves = os.listdir('saves')
-    except:    
-        os.makedirs('saves')
-        saves = os.listdir('saves')
-    return pics,saves
+# ---------------------- Colors ----------------------
 
-pics,saves = load_files()
-
-def load():
-    file = 'saves/'+gui.get_value('file')
-    file = open(file=file)
-    file = file.readlines()
-    print(file)
-    modules = []
-    for i in file:
-        modules.append(i.replace('\n',''))
-    
-    gui.set_value('t',modules[0])
-    gui.set_value('size',int(modules[1]))
-    gui.set_value('gap',int(modules[2]))
-    gui.set_value('thick',int(modules[3]))
-    gui.set_value('posx',int(modules[4]))
-    gui.set_value('posy',int(modules[5]))
-    gui.set_value('color',[float(modules[6]),float(modules[7]),float(modules[8]),255.0])
-    gui.set_value('rep',bool(int(modules[9])))
-    gui.set_value('dot',bool(int(modules[10])))
-
-def save():
-    with open('saves/'+gui.get_value('savename')+'.Clab', 'w') as x:
-
-        x.write(str(gui.get_value('t'))+'\n')
-        x.write(str(gui.get_value('size'))+'\n')
-        x.write(str(gui.get_value('gap'))+'\n')
-        x.write(str(gui.get_value('thick'))+'\n')
-        x.write(str(gui.get_value('posx'))+'\n')
-        x.write(str(gui.get_value('posy'))+'\n')
-        x.write(str(gui.get_value('color')[0])+'\n')
-        x.write(str(gui.get_value('color')[1])+'\n')
-        x.write(str(gui.get_value('color')[2])+'\n')
-        if gui.get_value('rep')==True:
-            x.write('1'+'\n')
-        else:
-            x.write('0'+'\n')
-        if gui.get_value('dot')==True:
-            x.write('1'+'\n')
-        else:
-            x.write('0'+'\n')
+themes = {
+    'default': {
+        "window": (40, 40, 40, 255),
+        "button": (60, 60, 60, 255),
+        "text": (255, 255, 255, 255),
+        "tab": (60, 60, 60, 255),
+        "frame": (55, 55, 55, 255),
+        "activate": (0, 150, 255, 255)
+    },
+    'white': {
+        "window": (240, 240, 240, 255),
+        "button": (220, 220, 220, 255),
+        "text": (0, 0, 0, 255),
+        "tab": (220, 220, 220, 255),
+        "frame": (200, 200, 200, 255),
+        "activate": (100, 100, 100, 255)
+    },
+    'orange_website': {
+        "window": (0, 0, 0, 255),
+        "button": (255, 120, 0, 255),
+        "text": (255, 255, 255, 255),
+        "tab": (255, 120, 0, 255),
+        "frame": (255, 120, 0, 255),
+        "activate": (0, 0, 0, 255)
+    },
+    'lime': {
+        "window": (230, 255, 230, 255),
+        "button": (180, 255, 180, 255),
+        "text": (0, 0, 0, 255),
+        "tab": (180, 255, 180, 255),
+        "frame": (100, 200, 100, 255),
+        "activate": (50, 205, 50, 255)
+    },
+    'night_sky': {
+        "window": (0, 0, 30, 255),
+        "button": (0, 0, 100, 255),
+        "text": (255, 255, 255, 255),
+        "tab": (0, 0, 50, 255),
+        "frame": (30, 30, 70, 255),
+        "activate": (25, 25, 112, 255)
+    },
+    'banana': {
+        "window": (255, 255, 204, 255),
+        "button": (255, 255, 0, 255),
+        "text": (0, 0, 0, 255),
+        "tab": (255, 215, 0, 255),
+        "frame": (255, 165, 0, 255),
+        "activate": (255, 215, 0, 255)
+    }
+}
 
 
-def open_folder():
-    os.startfile('customcross')
 
-def ref_files():
-    global pics,saves
-    pics,saves= load_files()
-    gui.configure_item("path", items=pics)
-    gui.configure_item("file", items=saves)
+def get_theme_list():
+    t= []
+    for i in themes.keys():
+        t.append(i)
+    return t
+
+theme_list = get_theme_list()
+
+def settheme(window,buttnon,text,tab,frame,activate):
+    with gui.theme() as e:
+
+        with gui.theme_component(gui.mvAll):
+            gui.add_theme_color(gui.mvThemeCol_WindowBg, window)
+            gui.add_theme_color(gui.mvThemeCol_Button, buttnon)
+            gui.add_theme_color(gui.mvThemeCol_Text, text)
+            gui.add_theme_color(gui.mvThemeCol_Tab, tab)
+            gui.add_theme_color(gui.mvThemeCol_FrameBg, frame)
+            gui.add_theme_color(gui.mvThemeCol_SliderGrab, activate)
+                
+            gui.add_theme_color(gui.mvThemeCol_FrameBgActive, activate)
+            gui.add_theme_color(gui.mvThemeCol_TabActive, activate)
+                
+            gui.add_theme_color(gui.mvThemeCol_TabHovered, activate)
+            gui.add_theme_color(gui.mvThemeCol_FrameBgHovered, activate)
+            gui.add_theme_color(gui.mvThemeCol_ButtonHovered, activate)
+            gui.add_theme_color(gui.mvThemeCol_SliderGrabActive, activate)
+        
+    gui.bind_theme(e)    
+    try:  
+        settheme(themes[gui.get_value('thm')]['window'],
+            themes[gui.get_value('thm')]['button'],
+            themes[gui.get_value('thm')]['text'],
+            themes[gui.get_value('thm')]['tab'],
+            themes[gui.get_value('thm')]['frame'],
+            themes[gui.get_value('thm')]['activate'])
+    except:None
+
 
 def rgbeffect():
+ 
     def set_color(r,g,b):gui.set_value('color',[float(r),float(g),float(b),255.0])
 
     while True:       
@@ -121,6 +149,101 @@ def rgbeffect():
             time.sleep(0.0001)
         else:time.sleep(0.5)
 
+
+
+
+
+
+
+
+
+
+
+# ---------------------- Files ----------------------
+def load_files():
+    try:
+        pics = os.listdir('customcross')
+    except:
+        os.makedirs('customcross')
+        pics = os.listdir('customcross')
+
+    try:
+        saves = os.listdir('saves')
+    except:    
+        os.makedirs('saves')
+        saves = os.listdir('saves')
+    return pics,saves
+
+pics,saves = load_files()
+
+def load():
+    file = 'saves/'+gui.get_value('file')
+    file = open(file=file)
+    file = file.readlines()
+    print(file)
+    modules = []
+    for i in file:
+        modules.append(i.replace('\n',''))
+    
+    gui.set_value('t',modules[0])
+    gui.set_value('size',int(modules[1]))
+    gui.set_value('gap',int(modules[2]))
+    gui.set_value('thick',int(modules[3]))
+    gui.set_value('posx',int(modules[4]))
+    gui.set_value('posy',int(modules[5]))
+    gui.set_value('color',[float(modules[6]),float(modules[7]),float(modules[8]),255.0])
+    gui.set_value('rep',bool(int(modules[9])))
+    gui.set_value('dot',bool(int(modules[10])))
+    try:
+        gui.set_value('rgbef',bool(int(modules[11])))
+        gui.set_value('efspeed',int(modules[12]))
+    except:None
+
+def save():
+    with open('saves/'+gui.get_value('savename')+'.Clab', 'w') as x:
+
+        x.write(str(gui.get_value('t'))+'\n')
+        x.write(str(gui.get_value('size'))+'\n')
+        x.write(str(gui.get_value('gap'))+'\n')
+        x.write(str(gui.get_value('thick'))+'\n')
+        x.write(str(gui.get_value('posx'))+'\n')
+        x.write(str(gui.get_value('posy'))+'\n')
+        x.write(str(gui.get_value('color')[0])+'\n')
+        x.write(str(gui.get_value('color')[1])+'\n')
+        x.write(str(gui.get_value('color')[2])+'\n')
+        if gui.get_value('rep')==True:
+            x.write('1'+'\n')
+        else:
+            x.write('0'+'\n')
+        if gui.get_value('dot')==True:
+            x.write('1'+'\n')
+        else:
+            x.write('0'+'\n')
+        if gui.get_value('rgbef')==True:
+            x.write('1'+'\n')
+        else:
+            x.write('0'+'\n')
+        x.write(str(gui.get_value('efspeed'))+'\n')
+
+def open_folder():
+    os.startfile('customcross')
+
+def ref_files():
+    global pics,saves
+    pics,saves= load_files()
+    gui.configure_item("path", items=pics)
+    gui.configure_item("file", items=saves)
+
+
+
+
+
+
+
+
+
+
+# ---------------------- other ----------------------
 def reset_pos():
     gui.set_value('posx',screenx/2)
     gui.set_value('posy',screeny/2)
@@ -135,6 +258,17 @@ def reset():
     gui.set_value('color',[255.0,255.0,255.0,255.0])
     gui.set_value('rep',False)
     gui.set_value('dot',False)
+
+
+
+
+
+
+
+
+
+
+# ---------------------- Crosshair main ----------------------
 
 def corshair():
     glfw.init()
@@ -274,6 +408,8 @@ def corshair():
             glBindTexture(GL_TEXTURE_2D, texture_id)
               
             gui.set_value('color',[255.0,255.0,255.0,255.0])
+            if gui.get_value('rgbef')==True:
+                gui.set_value('rgbef',False)
 
 
             half_width = img_width / 2
@@ -294,10 +430,19 @@ def corshair():
 
 
 
+
+
+
+
+
+
+
+# ---------------------- GUI ----------------------
+modes = ['+','x','o']
+
 def threads():
     threading.Thread(target=corshair, daemon=True).start()
     threading.Thread(target=rgbeffect, daemon=True).start()
-
 
 gui.create_context()
 gui.create_viewport(title=title, width=400, height=400)
@@ -307,34 +452,45 @@ gui.set_viewport_resizable(False)
 
 with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=True,no_resize=True, no_move=True, show=True):
     with gui.tab_bar(label='cross'): 
-        with gui.tab(label='crosshair'):
-            gui.add_listbox(label='type',tag='t',items=modes, default_value='+')
-            gui.add_slider_int(label='size', tag='size', min_value=1, max_value=50, default_value=6)
-            gui.add_slider_int(label='gap', tag='gap', min_value=0, max_value=50, default_value=4)
-            gui.add_slider_int(label='thick', tag='thick', min_value=1, max_value=10, default_value=2)
-            gui.add_checkbox(label='dot',tag='dot')
-            gui.add_button(label='reset',callback=reset,width=100)
-        with gui.tab(label='color'):
-            gui.add_color_picker(label='color:',tag='color', default_value=[255.0,255.0,255.0,255.0],height=200,width=200)
-            gui.add_checkbox(label='rgb effect',tag='rgbef')
-            gui.add_slider_int(label='effect speed',tag='efspeed',min_value=1,max_value=20,default_value=5)
-        with gui.tab(label='position'):
-            gui.add_slider_int(label='posx', min_value=1,max_value=screenx,default_value=screenx/2, tag='posx',width=300)
-            gui.add_slider_int(label='posy', min_value=1,max_value=screeny,default_value=screeny/2, tag='posy',width=300)
-            gui.add_button(label='reset position',callback=reset_pos,width=150)
-        with gui.tab(label='img to cross'):
-            gui.add_checkbox(label='replace crosshair with image',tag='rep')
-            gui.add_listbox(label='path',tag='path',items=pics)
-            gui.add_button(label='refresh files',callback=ref_files,width=100)
-            gui.add_button(label='open folder',callback=open_folder,width=100)
-        with gui.tab(label='save/load'):
-            gui.add_text(label='Load',default_value='Load')
-            gui.add_listbox(label='',tag='file',items=saves)
-            gui.add_button(label='load',callback=load,width=100)
-            gui.add_button(label='refresh files',callback=ref_files,width=100)
-            gui.add_text(label='Save',default_value='Save')
-            gui.add_input_text(label='save name',tag='savename')
-            gui.add_button(label='save',callback=save,width=100)
+        with gui.tab(label='Crosshair'):
+            with gui.tab_bar(label="Crosshair"):
+                with gui.tab(label='crosshair'):
+                    gui.add_listbox(label='type',tag='t',items=modes, default_value='+')
+                    gui.add_slider_int(label='size', tag='size', min_value=1, max_value=50, default_value=6)
+                    gui.add_slider_int(label='gap', tag='gap', min_value=0, max_value=50, default_value=4)
+                    gui.add_slider_int(label='thick', tag='thick', min_value=1, max_value=10, default_value=2)
+                    gui.add_checkbox(label='dot',tag='dot')
+                    gui.add_button(label='reset',callback=reset,width=100)
+                with gui.tab(label='color'):
+                    gui.add_color_picker(label='color:',tag='color', default_value=[255.0,255.0,255.0,255.0],height=200,width=200)
+                    gui.add_checkbox(label='rgb effect',tag='rgbef')
+                    gui.add_slider_int(label='effect speed',tag='efspeed',min_value=1,max_value=20,default_value=5)
+                with gui.tab(label='position'):
+                    gui.add_slider_int(label='posx', min_value=1,max_value=screenx,default_value=screenx/2, tag='posx',width=300)
+                    gui.add_slider_int(label='posy', min_value=1,max_value=screeny,default_value=screeny/2, tag='posy',width=300)
+                    gui.add_button(label='reset position',callback=reset_pos,width=150)
+                with gui.tab(label='img to cross'):
+                    gui.add_checkbox(label='replace crosshair with image',tag='rep')
+                    gui.add_listbox(label='path',tag='path',items=pics)
+                    gui.add_button(label='refresh files',callback=ref_files,width=100)
+                    gui.add_button(label='open folder',callback=open_folder,width=100)
+                with gui.tab(label='save/load'):
+                    gui.add_text(label='Load',default_value='Load')
+                    gui.add_listbox(label='',tag='file',items=saves)
+                    gui.add_button(label='load',callback=load,width=100)
+                    gui.add_button(label='refresh files',callback=ref_files,width=100)
+                    gui.add_text(label='Save',default_value='Save')
+                    gui.add_input_text(label='save name',tag='savename')
+                    gui.add_button(label='save',callback=save,width=100)
+       
+        with gui.tab(label='Settings'):
+            with gui.tab_bar(label="themes"):
+                with gui.tab(label='theme'):
+                    gui.add_listbox(label='themes',tag='thm',items=theme_list, default_value='default', width=300,callback=settheme)
+
+
+
+
 
 
 
