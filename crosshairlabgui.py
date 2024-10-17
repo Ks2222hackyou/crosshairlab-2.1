@@ -9,10 +9,11 @@ import dearpygui.dearpygui as gui
 from OpenGL.GL import *
 from PIL import Image
 import pygetwindow as gw
+import ast,json, random
 #https://www.rapidtables.com/web/color/RGB_Color.html
 
 
-title = 'CrosshairLab v2.5'
+title = 'CrosshairLab v2.5.1'
 screenx = tkinter.Tk().winfo_screenwidth()
 screeny = tkinter.Tk().winfo_screenheight()
 
@@ -22,58 +23,80 @@ screeny = tkinter.Tk().winfo_screenheight()
 
 # ---------------------- Colors ----------------------
 
-themes = {
-    'default': {
-        "window": (40, 40, 40, 255),
-        "button": (60, 60, 60, 255),
-        "text": (255, 255, 255, 255),
-        "tab": (60, 60, 60, 255),
-        "frame": (55, 55, 55, 255),
-        "activate": (0, 150, 255, 255)
-    },
-    'white': {
-        "window": (240, 240, 240, 255),
-        "button": (220, 220, 220, 255),
-        "text": (0, 0, 0, 255),
-        "tab": (220, 220, 220, 255),
-        "frame": (200, 200, 200, 255),
-        "activate": (100, 100, 100, 255)
-    },
-    'orange_website': {
-        "window": (0, 0, 0, 255),
-        "button": (255, 120, 0, 255),
-        "text": (255, 255, 255, 255),
-        "tab": (255, 120, 0, 255),
-        "frame": (255, 120, 0, 255),
-        "activate": (0, 0, 0, 255)
-    },
-    'lime': {
-        "window": (230, 255, 230, 255),
-        "button": (180, 255, 180, 255),
-        "text": (0, 0, 0, 255),
-        "tab": (180, 255, 180, 255),
-        "frame": (100, 200, 100, 255),
-        "activate": (50, 205, 50, 255)
-    },
-    'night_sky': {
-        "window": (0, 0, 30, 255),
-        "button": (0, 0, 100, 255),
-        "text": (255, 255, 255, 255),
-        "tab": (0, 0, 50, 255),
-        "frame": (30, 30, 70, 255),
-        "activate": (25, 25, 112, 255)
-    },
-    'banana': {
-        "window": (255, 255, 204, 255),
-        "button": (255, 255, 0, 255),
-        "text": (0, 0, 0, 255),
-        "tab": (255, 215, 0, 255),
-        "frame": (255, 165, 0, 255),
-        "activate": (255, 215, 0, 255)
-    }
-}
+def savethemes():
+    with open('themes/themes.json', 'w') as file:
+        json.dump(themes, file, indent=4)
 
+def loadthemes():
+    try:
+        with open('themes/themes.json', 'r') as file:
+            global themes
+            return json.load(file)
+    except:
+        themes = {
+            'default': {
+                "window": (40, 40, 40, 255),
+                "button": (60, 60, 60, 255),
+                "text": (255, 255, 255, 255),
+                "tab": (60, 60, 60, 255),
+                "frame": (55, 55, 55, 255),
+                "activate": (0, 150, 255, 255)
+            },
+            'white': {
+                "window": (240, 240, 240, 255),
+                "button": (220, 220, 220, 255),
+                "text": (0, 0, 0, 255),
+                "tab": (220, 220, 220, 255),
+                "frame": (200, 200, 200, 255),
+                "activate": (100, 100, 100, 255)
+            },
+            'orange_website': {
+                "window": (0, 0, 0, 255),
+                "button": (255, 120, 0, 255),
+                "text": (255, 255, 255, 255),
+                "tab": (255, 120, 0, 255),
+                "frame": (255, 120, 0, 255),
+                "activate": (0, 0, 0, 255)
+            },
+            'lime': {
+                "window": (230, 255, 230, 255),
+                "button": (180, 255, 180, 255),
+                "text": (0, 0, 0, 255),
+                "tab": (180, 255, 180, 255),
+                "frame": (100, 200, 100, 255),
+                "activate": (50, 205, 50, 255)
+            },
+            'night_sky': {
+                "window": (0, 0, 30, 255),
+                "button": (0, 0, 100, 255),
+                "text": (255, 255, 255, 255),
+                "tab": (0, 0, 50, 255),
+                "frame": (30, 30, 70, 255),
+                "activate": (25, 25, 112, 255)
+            },
+            'banana': {
+                "window": (255, 255, 204, 255),
+                "button": (255, 255, 0, 255),
+                "text": (0, 0, 0, 255),
+                "tab": (255, 215, 0, 255),
+                "frame": (255, 165, 0, 255),
+                "activate": (255, 190, 0, 255)
+            }
+        }
+        try:
+            os.makedirs('themes')
+        except:None
+        savethemes()
+        return themes
 
+def removetheme():
+    with open('themes/themes.json', 'r') as file:
+        themes = json.load(file)
+    if gui.get_value('thm') in themes and gui.get_value('thm') not in {'default', 'white', 'orange_website', 'lime', 'night_sky', 'banana', 'sunset'}:
+        del themes[gui.get_value('thm')]
+        with open('themes/themes.json', 'w') as file:
+            json.dump(themes, file, indent=4)
+    ref_themes()
 
 def get_theme_list():
     t= []
@@ -81,10 +104,12 @@ def get_theme_list():
         t.append(i)
     return t
 
+themes = loadthemes()
+
 theme_list = get_theme_list()
 
 def settheme(window,buttnon,text,tab,frame,activate):
-    with gui.theme() as e:
+    with gui.theme() as theme:
 
         with gui.theme_component(gui.mvAll):
             gui.add_theme_color(gui.mvThemeCol_WindowBg, window)
@@ -102,7 +127,7 @@ def settheme(window,buttnon,text,tab,frame,activate):
             gui.add_theme_color(gui.mvThemeCol_ButtonHovered, activate)
             gui.add_theme_color(gui.mvThemeCol_SliderGrabActive, activate)
         
-    gui.bind_theme(e)    
+    gui.bind_theme(theme)    
     try:  
         settheme(themes[gui.get_value('thm')]['window'],
             themes[gui.get_value('thm')]['button'],
@@ -112,6 +137,17 @@ def settheme(window,buttnon,text,tab,frame,activate):
             themes[gui.get_value('thm')]['activate'])
     except:None
 
+def makecustomtheme():
+    themes[gui.get_value('themename')] = {
+        "window": ast.literal_eval(gui.get_value('themewd')),
+        "button": ast.literal_eval(gui.get_value('themebut')),
+        "text": ast.literal_eval(gui.get_value('themetxt')),
+        "tab": ast.literal_eval(gui.get_value('themetab')),
+        "frame": ast.literal_eval(gui.get_value('themeframe')),
+        "activate": ast.literal_eval(gui.get_value('themeact'))
+    }
+    savethemes()
+    ref_themes()
 
 def rgbeffect():
  
@@ -149,8 +185,11 @@ def rgbeffect():
             time.sleep(0.0001)
         else:time.sleep(0.5)
 
-
-
+def ref_themes():
+    global themes,theme_list
+    themes = loadthemes()
+    theme_list = get_theme_list()
+    gui.configure_item("thm", items=theme_list)
 
 
 
@@ -483,12 +522,20 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
                     gui.add_input_text(label='save name',tag='savename')
                     gui.add_button(label='save',callback=save,width=100)
        
-        with gui.tab(label='Settings'):
+        with gui.tab(label='GUI'):
             with gui.tab_bar(label="themes"):
-                with gui.tab(label='theme'):
+                with gui.tab(label='themes'):
                     gui.add_listbox(label='themes',tag='thm',items=theme_list, default_value='default', width=300,callback=settheme)
-
-
+                    gui.add_button(label='remove',callback=removetheme,width=100)
+                with gui.tab(label='add custom theme'):
+                    gui.add_input_text(label='name',tag='themename',default_value='name')
+                    gui.add_input_text(label='window',tag='themewd',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
+                    gui.add_input_text(label='button',tag='themebut',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
+                    gui.add_input_text(label='text',tag='themetxt',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
+                    gui.add_input_text(label='tab',tag='themetab',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
+                    gui.add_input_text(label='frame',tag='themeframe',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
+                    gui.add_input_text(label='activate',tag='themeact',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
+                    gui.add_button(label='add',callback=makecustomtheme,width=100)
 
 
 
