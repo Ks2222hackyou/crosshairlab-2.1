@@ -9,13 +9,14 @@ import dearpygui.dearpygui as gui
 from OpenGL.GL import *
 from PIL import Image
 import pygetwindow as gw
-import ast,json, random
+import ast, json, random, keyboard
 #https://www.rapidtables.com/web/color/RGB_Color.html
 
 
-title = 'CrosshairLab v2.5.1'
+title = 'CrosshairLab v2.6'
 screenx = tkinter.Tk().winfo_screenwidth()
 screeny = tkinter.Tk().winfo_screenheight()
+
 
 
 
@@ -117,8 +118,7 @@ def settheme(window,buttnon,text,tab,frame,activate):
             gui.add_theme_color(gui.mvThemeCol_Text, text)
             gui.add_theme_color(gui.mvThemeCol_Tab, tab)
             gui.add_theme_color(gui.mvThemeCol_FrameBg, frame)
-            gui.add_theme_color(gui.mvThemeCol_SliderGrab, activate)
-                
+            gui.add_theme_color(gui.mvThemeCol_SliderGrab, activate) 
             gui.add_theme_color(gui.mvThemeCol_FrameBgActive, activate)
             gui.add_theme_color(gui.mvThemeCol_TabActive, activate)
                 
@@ -126,6 +126,12 @@ def settheme(window,buttnon,text,tab,frame,activate):
             gui.add_theme_color(gui.mvThemeCol_FrameBgHovered, activate)
             gui.add_theme_color(gui.mvThemeCol_ButtonHovered, activate)
             gui.add_theme_color(gui.mvThemeCol_SliderGrabActive, activate)
+
+            gui.add_theme_color(gui.mvThemeCol_PopupBg, frame)
+
+            
+
+
         
     gui.bind_theme(theme)    
     try:  
@@ -314,7 +320,7 @@ def corshair():
     glfw.window_hint(glfw.TRANSPARENT_FRAMEBUFFER, True)
     glfw.window_hint(glfw.FLOATING, True)
     glfw.window_hint(glfw.DECORATED, False)
-
+    global window
     window = glfw.create_window(screenx, screeny, 'Crosshairlabrender', None, None)
     glfw.make_context_current(window)
     gl.glOrtho(0, screenx, 0, screeny, -1, 1)
@@ -471,6 +477,82 @@ def corshair():
 
 
 
+# ---------------------- tests ----------------------
+b=[]
+bindlist = {}
+test_i = 0
+def addtobindlist(pathname,bindname):
+    global bindlist
+    bindlist[gui.get_value(pathname)] = {"bind":gui.get_value(bindname)}
+    print(bindlist)
+    print(bindtag,pathname)
+
+
+def addbind():
+    global test_i
+    if test_i < len(saves):
+        global bindtag,pathtag
+        bindtag = 'bind'+str(test_i)
+        pathtag = 'path'+str(test_i)
+        try:
+            gui.add_combo(label='Crosshair '+str(test_i+1), parent='bindparent',tag=pathtag,callback=refresh_binds, items=saves)
+            gui.add_input_text(label='bind '+str(test_i+1), default_value=str(test_i), parent='bindparent', tag=bindtag,callback=refresh_binds)
+            addtobindlist(pathtag,bindtag)
+            b.append(test_i)
+        except:None
+        test_i=test_i+1
+
+
+def bindloop():
+    while True:
+        time.sleep(0.01)
+        
+        for key, value in bindlist.items():
+            try:
+                if keyboard.is_pressed(value['bind']):
+                
+                    print(key,value)
+                    file = f'saves/{key}'
+                    file = open(file=file)
+                    file = file.readlines()
+                    modules = []
+                    for i in file:
+                        modules.append(i.replace('\n',''))
+                        
+                    gui.set_value('t',modules[0])
+                    gui.set_value('size',int(modules[1]))
+                    gui.set_value('gap',int(modules[2]))
+                    gui.set_value('thick',int(modules[3]))
+                    gui.set_value('posx',int(modules[4]))
+                    gui.set_value('posy',int(modules[5]))
+                    gui.set_value('color',[float(modules[6]),float(modules[7]),float(modules[8]),255.0])
+                    gui.set_value('rep',bool(int(modules[9])))
+                    gui.set_value('dot',bool(int(modules[10])))
+                    
+                    gui.set_value('rgbef',bool(int(modules[11])))
+                    gui.set_value('efspeed',int(modules[12]))
+            except:None
+
+
+    
+def refresh_binds():
+    try:
+        for i in range(len(b)):
+            addtobindlist('path'+str(i),'bind'+str(i))
+    except:None
+
+
+def delete_binds():
+    try:
+        for i in range(len(b)):
+            gui.delete_item('path'+str(i))
+            gui.delete_item('bind'+str(i))
+        global test_i,bindlist
+        test_i = 0
+        bindlist.clear()
+    except:None
+
+
 
 
 
@@ -482,6 +564,7 @@ modes = ['+','x','o']
 def threads():
     threading.Thread(target=corshair, daemon=True).start()
     threading.Thread(target=rgbeffect, daemon=True).start()
+    threading.Thread(target=bindloop, daemon=True).start()
 
 gui.create_context()
 gui.create_viewport(title=title, width=400, height=400)
@@ -489,12 +572,12 @@ gui.setup_dearpygui()
 gui.set_viewport_resizable(False)
 
 
-with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=True,no_resize=True, no_move=True, show=True):
+with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=True,no_resize=True, no_move=True, show=True, tag='mainwindow'):
     with gui.tab_bar(label='cross'): 
         with gui.tab(label='Crosshair'):
             with gui.tab_bar(label="Crosshair"):
                 with gui.tab(label='crosshair'):
-                    gui.add_listbox(label='type',tag='t',items=modes, default_value='+')
+                    gui.add_combo(label='type',tag='t',items=modes, default_value='+')
                     gui.add_slider_int(label='size', tag='size', min_value=1, max_value=50, default_value=6)
                     gui.add_slider_int(label='gap', tag='gap', min_value=0, max_value=50, default_value=4)
                     gui.add_slider_int(label='thick', tag='thick', min_value=1, max_value=10, default_value=2)
@@ -510,14 +593,16 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
                     gui.add_button(label='reset position',callback=reset_pos,width=150)
                 with gui.tab(label='img to cross'):
                     gui.add_checkbox(label='replace crosshair with image',tag='rep')
-                    gui.add_listbox(label='path',tag='path',items=pics)
-                    gui.add_button(label='refresh files',callback=ref_files,width=100)
-                    gui.add_button(label='open folder',callback=open_folder,width=100)
+                    gui.add_combo(label='path',tag='path',items=pics)
+                    with gui.group(horizontal=True):
+                        gui.add_button(label='refresh files',callback=ref_files,width=100)
+                        gui.add_button(label='open folder',callback=open_folder,width=100)
                 with gui.tab(label='save/load'):
                     gui.add_text(label='Load',default_value='Load')
-                    gui.add_listbox(label='',tag='file',items=saves)
-                    gui.add_button(label='load',callback=load,width=100)
-                    gui.add_button(label='refresh files',callback=ref_files,width=100)
+                    gui.add_combo(label='',tag='file',items=saves)
+                    with gui.group(horizontal=True):
+                        gui.add_button(label='load',callback=load,width=100)
+                        gui.add_button(label='refresh files',callback=ref_files,width=100)
                     gui.add_text(label='Save',default_value='Save')
                     gui.add_input_text(label='save name',tag='savename')
                     gui.add_button(label='save',callback=save,width=100)
@@ -525,7 +610,7 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
         with gui.tab(label='GUI'):
             with gui.tab_bar(label="themes"):
                 with gui.tab(label='themes'):
-                    gui.add_listbox(label='themes',tag='thm',items=theme_list, default_value='default', width=300,callback=settheme)
+                    gui.add_combo(label='themes',tag='thm',items=theme_list, default_value='default', width=300,callback=settheme)
                     gui.add_button(label='remove',callback=removetheme,width=100)
                 with gui.tab(label='add custom theme'):
                     gui.add_input_text(label='name',tag='themename',default_value='name')
@@ -536,6 +621,17 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
                     gui.add_input_text(label='frame',tag='themeframe',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
                     gui.add_input_text(label='activate',tag='themeact',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
                     gui.add_button(label='add',callback=makecustomtheme,width=100)
+
+        with gui.tab(label='Bind Cross to key'):
+             with gui.tab_bar(label='DevTests'):
+                with gui.tab(label='Binds',tag='bindparent'):
+                    with gui.group(horizontal=True):
+                        gui.add_button(label='Add Bind',callback=addbind, width=100)
+                        gui.add_button(label='Refresh Binds',callback=refresh_binds, width=100)
+                        gui.add_button(label='Reset Binds',callback=delete_binds, width=100)
+                    gui.add_text(label='',default_value='WARNING! Do Not Add 2 Binds For 1 Crosshair!')
+
+
 
 
 
