@@ -24,6 +24,11 @@ screeny = tkinter.Tk().winfo_screenheight()
 
 # ---------------------- Colors ----------------------
 
+def savelatesttheme():
+    with open('themes/latest.clab', 'w') as x:
+
+        x.write(gui.get_value('thm'))
+
 def savethemes():
     with open('themes/themes.json', 'w') as file:
         json.dump(themes, file, indent=4)
@@ -141,7 +146,26 @@ def settheme(window,buttnon,text,tab,frame,activate):
             themes[gui.get_value('thm')]['tab'],
             themes[gui.get_value('thm')]['frame'],
             themes[gui.get_value('thm')]['activate'])
+
+        savelatesttheme()
+            
     except:None
+
+def loadlatesttheme():
+    global lasttheme
+    try:
+        file1 = 'themes/latest.clab'
+        file1 = open(file=file1)
+        file1 = file1.readlines()
+
+        modules1 = []
+        for i in file1:
+            modules1.append(i.replace('\n',''))
+        lasttheme = modules1[0]
+    except:
+        lasttheme = 'default'
+loadlatesttheme()
+
 
 def makecustomtheme():
     themes[gui.get_value('themename')] = {
@@ -204,6 +228,7 @@ def ref_themes():
 
 
 
+
 # ---------------------- Files ----------------------
 def load_files():
     try:
@@ -243,6 +268,11 @@ def load():
         gui.set_value('rgbef',bool(int(modules[11])))
         gui.set_value('efspeed',int(modules[12]))
     except:None
+    try:
+        gui.set_value('outline',bool(int(modules[13])))
+        gui.set_value('outcolor',[float(modules[14]),float(modules[15]),float(modules[16]),255.0])
+        gui.set_value('outthick',int(modules[17]))
+    except:None
 
 def save():
     with open('saves/'+gui.get_value('savename')+'.Clab', 'w') as x:
@@ -268,7 +298,17 @@ def save():
             x.write('1'+'\n')
         else:
             x.write('0'+'\n')
+        
         x.write(str(gui.get_value('efspeed'))+'\n')
+        
+        if gui.get_value('outline') == True:
+            x.write('1'+'\n')
+        else:
+            x.write('0'+'\n')
+        x.write(str(gui.get_value('outcolor')[0])+'\n')
+        x.write(str(gui.get_value('outcolor')[1])+'\n')
+        x.write(str(gui.get_value('outcolor')[2])+'\n')
+        x.write(str(gui.get_value('outthick')))
 
 def open_folder():
     os.startfile('customcross')
@@ -303,6 +343,10 @@ def reset():
     gui.set_value('color',[255.0,255.0,255.0,255.0])
     gui.set_value('rep',False)
     gui.set_value('dot',False)
+    gui.set_value('outline',False)
+    gui.set_value('outcolor',[0.0,0.0,0.0,0.0])
+    gui.set_value('outthick',2)
+    
 
 
 
@@ -368,6 +412,70 @@ def corshair():
     
     gw.getWindowsWithTitle(title=title)[0].activate()
     
+
+
+
+    def outline():
+        
+        xb=gui.get_value('outthick')
+        
+        gl.glColor3b(*(int(gui.get_value('outcolor')[0]/2),int(gui.get_value('outcolor')[1]/2),int(gui.get_value('outcolor')[2]/2)))
+        
+        gl.glLineWidth(thickness+xb*2)
+        
+        if gui.get_value('t')=='+':
+            
+            gl.glBegin(gl.GL_LINES)
+            gl.glVertex2f(x - (size + gap)-xb, y)
+            gl.glVertex2f(x - gap+xb, y)
+
+            gl.glVertex2f(x + (size + gap)+xb, y)
+            gl.glVertex2f(x + gap-xb, y)
+
+
+            gl.glVertex2f(x, y - (size + gap)-xb)
+            gl.glVertex2f(x, y - gap+xb)
+
+            gl.glVertex2f(x, y + (size + gap)+xb)
+            gl.glVertex2f(x, y + gap-xb)
+            gl.glEnd()
+        
+        elif gui.get_value('t')=='x':
+            
+            gl.glBegin(gl.GL_LINES)
+            gl.glVertex2f(x + gap-xb, y + gap-xb)
+            gl.glVertex2f(x + size + gap+xb, y + size + gap+xb)
+
+            gl.glVertex2f(x - gap+xb, y - gap+xb)
+            gl.glVertex2f(x - size - gap-xb, y - size - gap-xb)
+
+            gl.glVertex2f(x - gap+xb, y + gap-xb)
+            gl.glVertex2f(x - size - gap-xb, y + size + gap+xb)
+
+            gl.glVertex2f(x + gap-xb, y - gap+xb)
+            gl.glVertex2f(x + size + gap+xb, y - size - gap-xb)
+            gl.glEnd()
+        
+        elif gui.get_value('t')=='o':
+            gl.glEnable(gl.GL_BLEND)
+            gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+            gl.glEnable(gl.GL_LINE_SMOOTH)
+
+            gl.glBegin(gl.GL_LINE_LOOP)
+
+            if size > 0:
+                num_segments = 20000
+                for i in range(num_segments):
+                    theta = 2.0 * math.pi * i / num_segments
+                    dx = size * math.cos(theta)
+                    dy = size * math.sin(theta)
+                    gl.glVertex2f(x + dx, y + dy)
+
+            gl.glEnd()
+        
+        gl.glLineWidth(thickness)
+
+
     while True:
         size = gui.get_value('size')
         gap = gui.get_value('gap')
@@ -377,19 +485,24 @@ def corshair():
         gap = gui.get_value('gap')
         x = gui.get_value('posx')
         y = gui.get_value('posy')
-        color1 = get_color()
-           
+
+        
         glfw.swap_buffers(window)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         glfw.poll_events()
-        time.sleep(0.001)
+        time.sleep(0.01)
 
         gl.glLineWidth(thickness)
-        gl.glColor3b(*color1)
+
         
 
         if gui.get_value('t')=='+' and gui.get_value('rep')==False:
             
+            if gui.get_value('outline'):
+                outline()
+            
+            gl.glColor3b(*get_color())
+
             gl.glBegin(gl.GL_LINES)
         
             gl.glVertex2f(x - (size + gap), y)
@@ -412,6 +525,11 @@ def corshair():
         
         elif gui.get_value('t')=='x' and gui.get_value('rep')==False:
             
+            if gui.get_value('outline'):
+                outline()
+
+            gl.glColor3b(*get_color())
+            
             gl.glBegin(gl.GL_LINES)
             
             gl.glVertex2f(x + gap, y + gap)
@@ -432,17 +550,33 @@ def corshair():
                 dot(x,y,thickness)
        
         elif gui.get_value('t') == 'o' and gui.get_value('rep') == False:
+            
+            if gui.get_value('outline'):
+                outline()
+
+            gl.glColor3b(*get_color())
+            
+            gl.glEnable(gl.GL_BLEND)
+            gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
+            gl.glEnable(gl.GL_LINE_SMOOTH)
+
             gl.glBegin(gl.GL_LINE_LOOP)
 
             if size > 0:
-                num_segments = 10000
+                num_segments = 20000
                 for i in range(num_segments):
                     theta = 2.0 * math.pi * i / num_segments
                     dx = size * math.cos(theta)
                     dy = size * math.sin(theta)
-                    gl.glVertex2f(x + dx, y + dy)        
+                    gl.glVertex2f(x + dx, y + dy)
+
             gl.glEnd()
-            
+
+            if gui.get_value('dot') == True:
+                dot(x, y, thickness)
+
+            gl.glDisable(gl.GL_LINE_SMOOTH)
+            gl.glDisable(gl.GL_BLEND)
             if gui.get_value('dot') == True:
                 dot(x, y, thickness)
        
@@ -489,7 +623,10 @@ def addtobindlist(pathname,bindname):
 
 
 def addbind():
-    global test_i
+    global test_i, pics, saves
+
+    refresh_binds()
+    
     if test_i < len(saves):
         global bindtag,pathtag
         bindtag = 'bind'+str(test_i)
@@ -528,17 +665,27 @@ def bindloop():
                     gui.set_value('color',[float(modules[6]),float(modules[7]),float(modules[8]),255.0])
                     gui.set_value('rep',bool(int(modules[9])))
                     gui.set_value('dot',bool(int(modules[10])))
-                    
-                    gui.set_value('rgbef',bool(int(modules[11])))
-                    gui.set_value('efspeed',int(modules[12]))
+                    try:
+                        gui.set_value('rgbef',bool(int(modules[11])))
+                        gui.set_value('efspeed',int(modules[12]))
+                    except:None
+                    try:
+                        gui.set_value('outline',bool(int(modules[13])))
+                        gui.set_value('outcolor',[float(modules[14]),float(modules[15]),float(modules[16]),255.0])
+                        gui.set_value('outthick',int(modules[17]))
+                    except:None
             except:None
 
 
     
 def refresh_binds():
+    global test_i, pics, saves
+
+    pics,saves = load_files()
     try:
         for i in range(len(b)):
             addtobindlist('path'+str(i),'bind'+str(i))
+            gui.configure_item('path'+str(i), items=saves)
     except:None
 
 
@@ -562,6 +709,12 @@ def delete_binds():
 modes = ['+','x','o']
 
 def threads():
+    settheme(themes[gui.get_value('thm')]['window'],
+            themes[gui.get_value('thm')]['button'],
+            themes[gui.get_value('thm')]['text'],
+            themes[gui.get_value('thm')]['tab'],
+            themes[gui.get_value('thm')]['frame'],
+            themes[gui.get_value('thm')]['activate'])
     threading.Thread(target=corshair, daemon=True).start()
     threading.Thread(target=rgbeffect, daemon=True).start()
     threading.Thread(target=bindloop, daemon=True).start()
@@ -580,23 +733,23 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
                     gui.add_combo(label='type',tag='t',items=modes, default_value='+')
                     gui.add_slider_int(label='size', tag='size', min_value=1, max_value=50, default_value=6)
                     gui.add_slider_int(label='gap', tag='gap', min_value=0, max_value=50, default_value=4)
-                    gui.add_slider_int(label='thick', tag='thick', min_value=1, max_value=10, default_value=2)
+                    gui.add_slider_int(label='thick', tag='thick', min_value=1, max_value=5, default_value=2)
                     gui.add_checkbox(label='dot',tag='dot')
+                    gui.add_checkbox(label='outline',tag='outline')
+                    gui.add_slider_int(label='outline thick', tag='outthick', min_value=1, max_value=5, default_value=2)
                     gui.add_button(label='reset',callback=reset,width=100)
-                with gui.tab(label='color'):
-                    gui.add_color_picker(label='color:',tag='color', default_value=[255.0,255.0,255.0,255.0],height=200,width=200)
-                    gui.add_checkbox(label='rgb effect',tag='rgbef')
-                    gui.add_slider_int(label='effect speed',tag='efspeed',min_value=1,max_value=20,default_value=5)
+                with gui.tab(label='colors'):
+                    with gui.tab_bar(label="color"):
+                        with gui.tab(label='cross color'):
+                            gui.add_color_picker(label='color:',tag='color', default_value=[255.0,255.0,255.0,255.0],height=180,width=180)
+                            gui.add_checkbox(label='rgb effect',tag='rgbef')
+                            gui.add_slider_int(label='effect speed',tag='efspeed',min_value=1,max_value=20,default_value=5)
+                        with gui.tab(label='outline color'):
+                            gui.add_color_picker(label='color:',tag='outcolor', default_value=[0.0,0.0,0.0,255.0],height=180,width=180)   
                 with gui.tab(label='position'):
                     gui.add_slider_int(label='posx', min_value=1,max_value=screenx,default_value=screenx/2, tag='posx',width=300)
                     gui.add_slider_int(label='posy', min_value=1,max_value=screeny,default_value=screeny/2, tag='posy',width=300)
                     gui.add_button(label='reset position',callback=reset_pos,width=150)
-                with gui.tab(label='img to cross'):
-                    gui.add_checkbox(label='replace crosshair with image',tag='rep')
-                    gui.add_combo(label='path',tag='path',items=pics)
-                    with gui.group(horizontal=True):
-                        gui.add_button(label='refresh files',callback=ref_files,width=100)
-                        gui.add_button(label='open folder',callback=open_folder,width=100)
                 with gui.tab(label='save/load'):
                     gui.add_text(label='Load',default_value='Load')
                     gui.add_combo(label='',tag='file',items=saves)
@@ -607,10 +760,10 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
                     gui.add_input_text(label='save name',tag='savename')
                     gui.add_button(label='save',callback=save,width=100)
        
-        with gui.tab(label='GUI'):
+        with gui.tab(label='theme'):
             with gui.tab_bar(label="themes"):
                 with gui.tab(label='themes'):
-                    gui.add_combo(label='themes',tag='thm',items=theme_list, default_value='default', width=300,callback=settheme)
+                    gui.add_combo(label='themes',tag='thm',items=theme_list, default_value=lasttheme, width=300,callback=settheme)
                     gui.add_button(label='remove',callback=removetheme,width=100)
                 with gui.tab(label='add custom theme'):
                     gui.add_input_text(label='name',tag='themename',default_value='name')
@@ -622,7 +775,7 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
                     gui.add_input_text(label='activate',tag='themeact',default_value=(f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"+","+f"{random.randint(1,255)}"))
                     gui.add_button(label='add',callback=makecustomtheme,width=100)
 
-        with gui.tab(label='Bind Cross to key'):
+        with gui.tab(label='Binds'):
              with gui.tab_bar(label='DevTests'):
                 with gui.tab(label='Binds',tag='bindparent'):
                     with gui.group(horizontal=True):
@@ -630,6 +783,15 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
                         gui.add_button(label='Refresh Binds',callback=refresh_binds, width=100)
                         gui.add_button(label='Reset Binds',callback=delete_binds, width=100)
                     gui.add_text(label='',default_value='WARNING! Do Not Add 2 Binds For 1 Crosshair!')
+        
+        with gui.tab(label='img to cross'):
+            with gui.tab_bar(label='img to cross'):
+                with gui.tab(label='img to cross'):
+                    gui.add_checkbox(label='replace crosshair with image',tag='rep')
+                    gui.add_combo(label='path',tag='path',items=pics)
+                    with gui.group(horizontal=True):
+                        gui.add_button(label='refresh files',callback=ref_files,width=100)
+                        gui.add_button(label='open folder',callback=open_folder,width=100)
 
 
 
