@@ -13,7 +13,7 @@ import ast, json, random, keyboard
 #https://www.rapidtables.com/web/color/RGB_Color.html
 
 
-title = 'CrosshairLab v2.6'
+title = 'CrosshairLab v2.7.1'
 screenx = tkinter.Tk().winfo_screenwidth()
 screeny = tkinter.Tk().winfo_screenheight()
 
@@ -347,7 +347,12 @@ def reset():
     gui.set_value('outcolor',[0.0,0.0,0.0,0.0])
     gui.set_value('outthick',2)
     
-
+def resetmainfunction():
+    corshair()
+def set_overley_current():
+    gw.getWindowsWithTitle(title='Crosshairlabrender')[0].activate()
+    time.sleep(1)
+    gw.getWindowsWithTitle(title=title)[0].activate()
 
 
 
@@ -409,7 +414,7 @@ def corshair():
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
 
         return texture_id, img.width, img.height
-    
+
     gw.getWindowsWithTitle(title=title)[0].activate()
     
 
@@ -792,6 +797,11 @@ with gui.window(label='CrosshairLab v2.3', width=385,height=400,no_title_bar=Tru
                     with gui.group(horizontal=True):
                         gui.add_button(label='refresh files',callback=ref_files,width=100)
                         gui.add_button(label='open folder',callback=open_folder,width=100)
+        with gui.tab(label='fixes'):
+            with gui.tab_bar(label='fixes'):
+                with gui.tab(label='fixes'):            
+                    gui.add_button(label='start main function',callback=resetmainfunction)
+                    gui.add_button(label='set crosshair overley on top',callback=set_overley_current)
 
 
 
